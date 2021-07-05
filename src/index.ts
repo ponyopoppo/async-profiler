@@ -136,7 +136,9 @@ export function getProfilerResult({
         if (!durations[key]) durations[key] = [];
         durations[key].push(endTime - log.init);
         info[key] = {
-            position: log.position,
+            position: newRootDir
+                ? log.position.replace(rootDir, newRootDir)
+                : log.position,
             name: log.name,
             path: newRootDir ? log.path.replace(rootDir, newRootDir) : log.path,
             line: log.line,
