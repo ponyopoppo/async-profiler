@@ -180,19 +180,40 @@ export function getResultTable(option: ResultOption = {}) {
     return table.toString();
 }
 
+const COLORS = [
+    '#777',
+    '#BBB',
+    '#F7FD04',
+    '#F9B208',
+    '#F98404',
+    '#FC5404',
+    '#F33',
+];
+function getAnnotationColor(num: number, borders: number[]) {
+    for (let i = 0; i < borders.length; i++) {
+        if (num < borders[i]) return COLORS[i];
+    }
+    return COLORS[borders.length];
+}
+
 export function getResultForAnnotation(option: ResultOption = {}) {
     const result = getProfilerResult(option);
-    const p80sum = stats.percentile(
-        result.map(({ sum }) => sum),
-        0.8
+    const sums = result.map(({ sum }) => sum);
+    const borders = [0.3, 0.5, 0.8, 0.9, 0.95, 0.99].map((th) =>
+        stats.percentile(sums, th)
     );
+
     return JSON.stringify(
         result.map((line) => ({
             path: line.path,
             line: line.line,
-            text: `${line.sum}ms - (count:${line.count} mean:${line.mean}ms p99:${line.p99}ms)`,
+            text: ` ${line.sum}ms - (count:${line.count} mean:${line.mean}ms p99:${line.p99}ms) `,
             hoverMessage: `${JSON.stringify(line, null, 2)}`,
-            color: line.sum < p80sum ? '#888' : '#f88',
+            color: getAnnotationColor(line.sum, borders),
+            backgroundColor:
+                getAnnotationColor(line.sum, borders) !== COLORS[0]
+                    ? '#444'
+                    : undefined,
         }))
     );
 }
