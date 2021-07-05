@@ -1,0 +1,27 @@
+{
+  "name": "async-profiler",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "test": "ts-mocha test/index.ts",
+    "build": "tsc",
+    "prepublishOnly": "rm -rf dist && rm -rf node_modules && yarn && yarn build"
+  },
+  "dependencies": {
+    "@types/cli-table": "^0.3.0",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^16.0.0",
+    "@types/stack-trace": "^0.0.29",
+    "@types/stats-lite": "^2.2.0",
+    "cli-table": "^0.3.6",
+    "mocha": "^9.0.2",
+    "stack-trace": "0",
+    "stats-lite": "^2.2.0",
+    "ts-mocha": "^8.0.0",
+    "tsc": "^2.0.3",
+    "typescript": "^4.3.5"
+  }
+}
