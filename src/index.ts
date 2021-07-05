@@ -52,6 +52,9 @@ export function enableProfiler(rootDirectory: string) {
                     triggerAsyncId,
                     type,
                     position: `${trace.getFileName()}:${trace.getLineNumber()}:${trace.getColumnNumber()}`,
+                    line: trace.getLineNumber(),
+                    column: trace.getColumnNumber(),
+                    path: trace.getFileName(),
                     name:
                         trace.getFunctionName() ||
                         trace.getMethodName() ||
@@ -98,6 +101,9 @@ interface Result {
     p95: number;
     p99: number;
     position: string;
+    path: string;
+    line: number;
+    column: number;
     name: string;
 }
 
@@ -117,6 +123,9 @@ export function getProfilerResult({
         [key: string]: {
             position: string;
             name: string;
+            path: string;
+            line: number;
+            column: number;
         };
     } = {};
     for (const asyncId of Object.keys(logs)) {
@@ -129,6 +138,9 @@ export function getProfilerResult({
         info[key] = {
             position: log.position,
             name: log.name,
+            path: newRootDir ? log.path.replace(rootDir, newRootDir) : log.path,
+            line: log.line,
+            column: log.column,
         };
     }
     const result: Result[] = [];
@@ -164,4 +176,21 @@ export function getResultTable(option: ResultOption = {}) {
     });
     table.push(...result.map((line) => head.map((item) => line[item])));
     return table.toString();
+}
+
+export function getResultForAnnotation(option: ResultOption = {}) {
+    const result = getProfilerResult(option);
+    const p80sum = stats.percentile(
+        result.map(({ sum }) => sum),
+        0.8
+    );
+    return JSON.stringify(
+        result.map((line) => ({
+            path: line.path,
+            line: line.line,
+            text: `${line.sum}ms - (count:${line.count} mean:${line.mean}ms p99:${line.p99}ms)`,
+            hoverMessage: `${JSON.stringify(line, null, 2)}`,
+            color: line.sum < p80sum ? '#888' : '#f88',
+        }))
+    );
 }
