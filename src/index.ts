@@ -24,21 +24,12 @@ export function enableProfiler(rootDirectory: string) {
         .createHook({
             init: (asyncId, type, triggerAsyncId) => {
                 const traces = stackTrace.parse(Error());
-                const rawTraces = traces
-                    .map(
-                        (trace) =>
-                            `${trace.getFileName()}:${trace.getLineNumber()}:${trace.getColumnNumber()} ${
-                                trace.getFunctionName() || trace.getMethodName()
-                            }`
-                    )
-                    .join('\n');
                 const trace = traces.filter(
                     (t) => !t.getFileName()?.startsWith('internal/async_hooks')
                 )[1];
                 if (
-                    !trace ||
-                    !trace.getFileName() ||
-                    !trace.getFileName().startsWith(rootDir)
+                    !trace?.getFileName()?.startsWith(rootDir) ||
+                    trace.getFileName().startsWith('node_modules/')
                 ) {
                     return;
                 }
@@ -59,7 +50,6 @@ export function enableProfiler(rootDirectory: string) {
                         trace.getFunctionName() ||
                         trace.getMethodName() ||
                         '()',
-                    rawTraces,
                     init: performance.now(),
                 };
             },
@@ -67,16 +57,6 @@ export function enableProfiler(rootDirectory: string) {
                 const log = logs[asyncId];
                 if (!log) return;
                 log.before = performance.now();
-            },
-            after(asyncId) {
-                const log = logs[asyncId];
-                if (!log) return;
-                log.after = performance.now();
-            },
-            destroy(asyncId) {
-                const log = logs[asyncId];
-                if (!log) return;
-                log.destroy = performance.now();
             },
             promiseResolve(asyncId) {
                 const log = logs[asyncId];
